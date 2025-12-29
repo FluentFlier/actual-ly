@@ -32,7 +32,7 @@ export default function LandingPage() {
           <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
             The human‑verified social layer.
           </h1>
-          <p className="text-lg text-[#4a3f39]">
+          <p className="text-lg text-[#5a4a43]">
             Actual.ly combines phone‑verified identity, transparent trust scores, and a powerful
             AI agent so your network is truthful, useful, and deeply human.
           </p>
@@ -102,15 +102,19 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 pb-20">
-        <Card className="flex flex-col items-start justify-between gap-6 border-[#e0d6c7] bg-[#b1251b] text-white backdrop-blur-none md:flex-row md:items-center">
+        <Card className="flex flex-col items-start justify-between gap-6 border-[#e0d6c7] bg-[#8f1d14] text-white shadow-lg backdrop-blur-none md:flex-row md:items-center">
           <CardHeader>
             <CardTitle className="text-2xl">Ready to claim your actual identity?</CardTitle>
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-white/90">
               Phone and email verification unlocks your profile, trust score, and agent access.
             </p>
           </CardHeader>
           <CardContent className="pt-0 md:pt-6">
-            <Button asChild variant="secondary" size="lg" className="text-[#b1251b]">
+            <Button
+              asChild
+              size="lg"
+              className="bg-[#f8efe6] text-[#8f1d14] hover:bg-white"
+            >
               <Link href="/sign-up" className="flex items-center gap-2">
                 Start now <ArrowUpRight className="h-4 w-4" />
               </Link>

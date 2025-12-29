@@ -89,8 +89,9 @@ export function UsernameClaim() {
             onChange={(event) => setUsername(event.target.value.trim().toLowerCase())}
             placeholder="claim your username"
             className={cn(
-              status === "available" && "border-emerald-400",
-              status === "taken" && "border-rose-400",
+              "border-[#d9cbbd] bg-white text-[#1f1a17] placeholder:text-[#9a8f88]",
+              status === "available" && "border-emerald-500",
+              status === "taken" && "border-rose-500",
             )}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
