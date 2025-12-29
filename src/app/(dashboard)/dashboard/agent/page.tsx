@@ -69,3 +69,5 @@ export default function AgentPage() {
     </div>
   );
 }
+
+export const dynamic = "force-dynamic";
