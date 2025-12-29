@@ -84,7 +84,12 @@ export default function VerifyPage() {
       } catch {
         data = {};
       }
-      setStatus(data?.error || "Unable to claim username.");
+      if (res.status === 403) {
+        setStatus("Username locked after verification. Use your existing handle.");
+        setUserHasUsername(true);
+      } else {
+        setStatus(data?.error || "Unable to claim username.");
+      }
       return;
     }
 
@@ -113,7 +118,17 @@ export default function VerifyPage() {
       setStatus(data?.error || "Unable to sync profile.");
       return;
     }
-    router.push("/dashboard");
+    try {
+      const data = await res.json();
+      if (!data?.success) {
+        setStatus("Unable to sync profile.");
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    router.replace("/dashboard");
+    window.location.href = "/dashboard";
   }
 
   return (
