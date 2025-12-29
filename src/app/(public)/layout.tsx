@@ -8,7 +8,7 @@ export default function PublicLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_oklch(0.98_0.02_120),_transparent_55%)]">
+    <div className="min-h-screen bg-[#f5efe6] text-[#1f1a17]">
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />

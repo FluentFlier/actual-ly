@@ -8,7 +8,7 @@ export async function Navbar() {
   const { userId } = await auth();
 
   return (
-    <header className="w-full border-b border-border/60 bg-background/70 backdrop-blur">
+    <header className="w-full border-b border-[#e7ddcf] bg-[#f5efe6]">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
         <SiteLogo />
         <nav className="flex items-center gap-3">
