@@ -122,7 +122,10 @@ export default function AgentActionsPage() {
               <div key={action.id} className="rounded-2xl border border-border/70 p-4">
                 <div className="flex items-center justify-between">
                   <span className="font-medium capitalize">{action.action_type}</span>
-                  <Badge variant={action.status === "failed" ? "destructive" : "outline"}>
+                  <Badge
+                    variant={action.status === "failed" ? "outline" : "outline"}
+                    className={action.status === "failed" ? "text-red-500 border-red-200" : undefined}
+                  >
                     {action.status || "completed"}
                   </Badge>
                 </div>
