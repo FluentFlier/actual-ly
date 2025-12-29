@@ -3,17 +3,22 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { updateTrustScore } from "@/lib/data/users";
 
-export async function POST() {
-  let { userId } = auth();
-  if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
-    const headerId = request.headers.get("x-clerk-user-id");
-    if (headerId) userId = headerId;
-  }
-  if (!userId) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+export async function POST(request: Request) {
+  try {
+    let { userId } = auth();
+    if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
+      const headerId = request.headers.get("x-clerk-user-id");
+      if (headerId) userId = headerId;
+    }
+    if (!userId) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
 
-  const clerkUser = await clerkClient.users.getUser(userId);
+    const client = await clerkClient();
+    const clerkUser = await client.users.getUser(userId);
+    if (!clerkUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
   const email = clerkUser.primaryEmailAddress?.emailAddress ?? null;
   const phone = clerkUser.primaryPhoneNumber?.phoneNumber ?? null;
   const emailVerified = clerkUser.primaryEmailAddress?.verification?.status === "verified";
@@ -51,5 +56,11 @@ export async function POST() {
 
   const breakdown = await updateTrustScore({ clerkId: userId, phoneVerified, emailVerified });
 
-  return NextResponse.json({ success: true, trustScore: breakdown?.total ?? null });
+    return NextResponse.json({ success: true, trustScore: breakdown?.total ?? null });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Unexpected error" },
+      { status: 500 },
+    );
+  }
 }

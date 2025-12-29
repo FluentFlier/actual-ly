@@ -104,7 +104,13 @@ export default function VerifyPage() {
       headers: authHeaders,
     });
     if (!res.ok) {
-      setStatus("Unable to sync profile.");
+      let data: { error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      setStatus(data?.error || "Unable to sync profile.");
       return;
     }
     router.push("/dashboard");
