@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { getUserByUsername } from "@/lib/data/users";
 
 type Context = {
-  params: { username: string };
+  params: { username: string } | Promise<{ username: string }>;
 };
 
-export async function GET(_: Request, { params }: Context) {
+export async function GET(_: Request, context: Context) {
+  const params = await Promise.resolve(context.params as { username: string } | Promise<{ username: string }>);
   const user = await getUserByUsername(params.username);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });

@@ -50,7 +50,10 @@ export function AgentChat() {
       setError("Sign in to chat with your agent.");
       return;
     }
-    const nextMessages = [...messages, { role: "user", content: input.trim() }];
+    const nextMessages: Message[] = [
+      ...messages,
+      { role: "user", content: input.trim() },
+    ];
     setMessages(nextMessages);
     setInput("");
     setIsSending(true);

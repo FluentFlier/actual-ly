@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 export default async function FeedPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const posts = await getFeedPosts(userId);
 
   return (

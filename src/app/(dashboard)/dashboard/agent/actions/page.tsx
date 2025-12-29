@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default async function AgentActionsPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const actions = userId ? await getAgentActions(userId) : [];
 
   return (

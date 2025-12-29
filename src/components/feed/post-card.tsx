@@ -25,13 +25,22 @@ type Post = {
   comments_count: number;
   created_at: string;
   liked?: boolean;
-  users?: {
-    id?: string;
-    username?: string | null;
-    display_name?: string | null;
-    avatar_url?: string | null;
-    is_verified?: boolean | null;
-  } | null;
+  users?:
+    | {
+        id?: string;
+        username?: string | null;
+        display_name?: string | null;
+        avatar_url?: string | null;
+        is_verified?: boolean | null;
+      }
+    | Array<{
+        id?: string;
+        username?: string | null;
+        display_name?: string | null;
+        avatar_url?: string | null;
+        is_verified?: boolean | null;
+      }>
+    | null;
 };
 
 type Comment = {
@@ -43,7 +52,7 @@ type Comment = {
 
 export function PostCard({ post }: { post: Post }) {
   const { user } = useUser();
-  const author = post.users || {};
+  const author = Array.isArray(post.users) ? post.users[0] || {} : post.users || {};
   const [liked, setLiked] = useState(Boolean(post.liked));
   const [likes, setLikes] = useState(post.likes_count || 0);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -111,7 +120,10 @@ export function PostCard({ post }: { post: Post }) {
   return (
     <div className="rounded-2xl border border-border/70 p-4 shadow-sm">
       <div className="flex items-center gap-3">
-        <Avatar src={author.avatar_url} alt={author.display_name || author.username} />
+        <Avatar
+          src={author.avatar_url ?? undefined}
+          alt={author.display_name || author.username || "User"}
+        />
         <div>
           <p className="text-sm font-semibold">
             {author.display_name || author.username || "Anonymous"}

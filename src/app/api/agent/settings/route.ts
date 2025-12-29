@@ -25,7 +25,7 @@ const schema = z.object({
 });
 
 export async function GET(request: Request) {
-  let { userId } = auth();
+  let { userId } = await auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
     if (headerId) userId = headerId;
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  let { userId } = auth();
+  let { userId } = await auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
     if (headerId) userId = headerId;

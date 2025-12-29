@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSavedItems } from "@/lib/data/saved";
 
 export default async function SavedPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const items = await getSavedItems(userId);
 
   return (

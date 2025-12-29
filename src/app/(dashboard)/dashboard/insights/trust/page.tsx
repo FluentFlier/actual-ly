@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTrustBreakdown } from "@/lib/data/insights";
 
 export default async function TrustInsightsPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const breakdown = userId ? await getTrustBreakdown(userId) : null;
 
   return (

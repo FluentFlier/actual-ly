@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { isAdminUser } from "@/lib/auth/admin";
 
 export async function GET() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ isAdmin: false }, { status: 401 });
   }

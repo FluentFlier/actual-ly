@@ -4,7 +4,7 @@ import { handleAgentMessage } from "@/lib/agent/handle-message";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
-  let { userId } = auth();
+  let { userId } = await auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
     if (headerId) userId = headerId;

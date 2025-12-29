@@ -11,7 +11,6 @@ type Settings = {
   verbosity?: "detailed" | "concise" | "tldr";
   enabledChannels?: {
     sms: boolean;
-    whatsapp: boolean;
     web: boolean;
   };
 };
@@ -20,7 +19,7 @@ const defaultSettings: Settings = {
   tone: "professional",
   proactivity: "medium",
   verbosity: "concise",
-  enabledChannels: { sms: false, whatsapp: false, web: true },
+  enabledChannels: { sms: false, web: true },
 };
 
 export function AgentSettingsForm() {
@@ -119,19 +118,22 @@ export function AgentSettingsForm() {
       <Card className="space-y-3 p-4">
         <p className="text-sm font-semibold">Channels</p>
         <div className="flex flex-wrap gap-2">
-          {(["sms", "whatsapp", "web"] as const).map((channel) => (
+          {(["sms", "web"] as const).map((channel) => (
             <Button
               key={channel}
               variant={settings.enabledChannels?.[channel] ? "primary" : "outline"}
               size="sm"
               onClick={() =>
-                setSettings((prev) => ({
-                  ...prev,
-                  enabledChannels: {
-                    ...prev.enabledChannels,
-                    [channel]: !prev.enabledChannels?.[channel],
-                  },
-                }))
+                setSettings((prev) => {
+                  const current = prev.enabledChannels ?? { sms: false, web: true };
+                  return {
+                    ...prev,
+                    enabledChannels: {
+                      ...current,
+                      [channel]: !current[channel],
+                    },
+                  };
+                })
               }
             >
               {channel}

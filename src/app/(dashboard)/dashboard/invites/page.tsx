@@ -37,9 +37,9 @@ export default function InvitesPage() {
         <CardContent className="space-y-3 text-sm text-slate-200">
           <p>Invites are limited to keep Actual.ly real. Each person verifies once.</p>
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Phone check</Badge>
-            <Badge variant="secondary">Email check</Badge>
-            <Badge variant="secondary">Trust score</Badge>
+            <Badge variant="outline">Phone check</Badge>
+            <Badge variant="outline">Email check</Badge>
+            <Badge variant="outline">Trust score</Badge>
           </div>
         </CardContent>
       </Card>

@@ -2,12 +2,12 @@ import { clerkClient } from "@clerk/nextjs/server";
 
 export async function getGoogleAccessToken(clerkId: string) {
   const client = await clerkClient();
-  const providers = ["oauth_google", "google"];
+  const providers = ["oauth_google"] as const;
 
   for (const provider of providers) {
     try {
       const tokens = await client.users.getUserOauthAccessToken(clerkId, provider);
-      const token = tokens?.[0]?.token;
+      const token = tokens?.data?.[0]?.token;
       if (token) return token;
     } catch {
       continue;

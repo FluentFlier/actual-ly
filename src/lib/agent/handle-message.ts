@@ -1,6 +1,6 @@
 import { extractUrls, fetchMetadata, fetchPageContent } from "@/lib/agent/link-metadata";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { executeAgentActions } from "@/lib/agent/action-executor";
+import { executeAgentActions, type AgentActionInput } from "@/lib/agent/action-executor";
 
 export async function handleAgentMessage({
   clerkId,
@@ -157,7 +157,14 @@ Respond with helpful next steps.`;
       .insert({ user_id: user.id, channel, messages: updatedMessages });
   }
 
-  const actionResults = await executeAgentActions({ userId: user.id, actions });
+  const filteredActions = actions.filter(
+    (action): action is NonNullable<typeof action> => action !== null,
+  );
+
+  const actionResults = await executeAgentActions({
+    userId: user.id,
+    actions: filteredActions,
+  });
 
   if (actionResults.some((result) => result.includes("not connected"))) {
     reply = `I couldn't access your integration yet. ${reply}`;
@@ -214,25 +221,37 @@ async function analyzeContentWithAI(text: string, url: string) {
   return String(data?.choices?.[0]?.message?.content || "").trim();
 }
 
-function normalizeActions(actions: unknown[]) {
-  return actions
-    .map((action) => {
-      if (typeof action !== "object" || !action) return null;
-      const { type, url, title, collection, remind_at, start_at, end_at, note } =
-        action as Record<string, string>;
-      if (!type) return null;
-      return {
-        type,
-        url,
-        title,
-        collection,
-        remind_at,
-        start_at,
-        end_at,
-        note,
-      };
-    })
-    .filter(Boolean);
+function normalizeActions(actions: unknown[]): (AgentActionInput | null)[] {
+  return actions.map((action) => {
+    if (typeof action !== "object" || !action) return null;
+    const { type, url, title, collection, remind_at, start_at, end_at, note, to, subject, body } =
+      action as Record<string, string>;
+
+    if (
+      ![
+        "save_link",
+        "create_reminder",
+        "create_calendar_event",
+        "send_email",
+      ].includes(type || "")
+    ) {
+      return null;
+    }
+
+    return {
+      type: type as AgentActionInput["type"],
+      url,
+      title,
+      collection,
+      remind_at,
+      start_at,
+      end_at,
+      note,
+      to,
+      subject,
+      body,
+    };
+  });
 }
 
 function extractJson(raw: string) {

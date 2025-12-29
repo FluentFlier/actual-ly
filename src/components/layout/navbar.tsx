@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export async function Navbar() {
-  const { userId } = auth();
+  const { userId } = await auth();
 
   return (
     <header className="w-full border-b border-border/60 bg-background/70 backdrop-blur">

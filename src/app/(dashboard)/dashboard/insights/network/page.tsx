@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export default async function NetworkInsightsPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const supabase = getSupabaseAdmin();
   const { data: user } = userId
     ? await supabase.from("users").select("id").eq("clerk_id", userId).single()

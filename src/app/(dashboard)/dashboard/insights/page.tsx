@@ -4,7 +4,7 @@ import { Activity, Shield, Users } from "lucide-react";
 import { getInsightsOverview } from "@/lib/data/insights";
 
 export default async function InsightsPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const overview = userId ? await getInsightsOverview(userId) : null;
 
   return (

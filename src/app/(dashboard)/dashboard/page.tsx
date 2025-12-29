@@ -19,7 +19,7 @@ import { getUpcomingReminders } from "@/lib/data/reminders";
 import { getGoogleAccessToken } from "@/lib/integrations/google";
 
 export default async function DashboardPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId && process.env.DEV_BYPASS_AUTH !== "true") {
     redirect("/sign-in");
   }

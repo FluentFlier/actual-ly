@@ -11,10 +11,11 @@ const schema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  context: { params: { id: string } | Promise<{ id: string }> },
 ) {
+  const params = await Promise.resolve(context.params as { id: string } | Promise<{ id: string }>);
   const { id } = params;
-  let { userId } = auth();
+  let { userId } = await auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
     if (headerId) userId = headerId;
@@ -59,10 +60,11 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  context: { params: { id: string } | Promise<{ id: string }> },
 ) {
+  const params = await Promise.resolve(context.params as { id: string } | Promise<{ id: string }>);
   const { id } = params;
-  let { userId } = auth();
+  let { userId } = await auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = _request.headers.get("x-clerk-user-id");
     if (headerId) userId = headerId;

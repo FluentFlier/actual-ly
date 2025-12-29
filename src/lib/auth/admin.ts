@@ -10,7 +10,8 @@ export async function isAdminUser(userId: string) {
     return false;
   }
 
-  const user = await clerkClient.users.getUser(userId);
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
   const primary = user.primaryEmailAddress?.emailAddress?.toLowerCase();
   return primary ? emails.includes(primary) : false;
 }
