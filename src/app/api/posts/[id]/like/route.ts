@@ -4,8 +4,9 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   let { userId } = auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
@@ -26,7 +27,7 @@ export async function POST(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const postId = params.id;
+  const postId = id;
   const { data: existing } = await supabase
     .from("post_likes")
     .select("id")

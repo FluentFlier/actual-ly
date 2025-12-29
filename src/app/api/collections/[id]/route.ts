@@ -10,8 +10,9 @@ const schema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   let { userId } = auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
@@ -41,7 +42,7 @@ export async function PATCH(
   const { data } = await supabase
     .from("collections")
     .update(parsed.data)
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", user.id)
     .select("id, name, icon, is_default")
     .single();
@@ -51,8 +52,9 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   let { userId } = auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = _request.headers.get("x-clerk-user-id");
@@ -73,7 +75,7 @@ export async function DELETE(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  await supabase.from("collections").delete().eq("id", params.id).eq("user_id", user.id);
+  await supabase.from("collections").delete().eq("id", id).eq("user_id", user.id);
 
   return NextResponse.json({ success: true });
 }

@@ -9,8 +9,9 @@ const schema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   let { userId } = auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
@@ -30,7 +31,7 @@ export async function POST(
   const { data: post } = await supabase
     .from("posts")
     .select("poll_options")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
 
   const options = Array.isArray(post?.poll_options) ? post.poll_options : [];
@@ -44,7 +45,7 @@ export async function POST(
       : option,
   );
 
-  await supabase.from("posts").update({ poll_options: updated }).eq("id", params.id);
+  await supabase.from("posts").update({ poll_options: updated }).eq("id", id);
 
   return NextResponse.json({ poll_options: updated });
 }

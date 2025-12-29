@@ -9,13 +9,14 @@ const schema = z.object({
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   const supabase = getSupabaseAdmin();
   const { data: comments } = await supabase
     .from("comments")
     .select("id, content, created_at, users (username, display_name)")
-    .eq("post_id", params.id)
+    .eq("post_id", id)
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -31,8 +32,9 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   let { userId } = auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
@@ -60,7 +62,7 @@ export async function POST(
   }
 
   await supabase.from("comments").insert({
-    post_id: params.id,
+    post_id: id,
     user_id: user.id,
     content: parsed.data.content,
   });
@@ -68,10 +70,10 @@ export async function POST(
   const { data: post } = await supabase
     .from("posts")
     .select("comments_count")
-    .eq("id", params.id)
+    .eq("id", id)
     .maybeSingle();
   const nextCount = (post?.comments_count ?? 0) + 1;
-  await supabase.from("posts").update({ comments_count: nextCount }).eq("id", params.id);
+  await supabase.from("posts").update({ comments_count: nextCount }).eq("id", id);
 
   return NextResponse.json({ success: true });
 }
