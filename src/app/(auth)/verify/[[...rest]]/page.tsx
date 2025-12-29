@@ -65,8 +65,12 @@ export default function VerifyPage() {
       setStatus("Finish connecting your integrations, then return to the dashboard.");
       return;
     }
-    if (window.localStorage.getItem("actual-ly-synced") === "true") {
-      window.location.assign("/dashboard");
+    try {
+      if (window.localStorage.getItem("actual-ly-synced") === "true") {
+        window.location.assign("/dashboard");
+      }
+    } catch {
+      // ignore storage access errors
     }
   }, [isSignedIn, searchParams]);
 
@@ -145,7 +149,11 @@ export default function VerifyPage() {
       // ignore
     }
     setStatus("Redirecting to dashboard...");
-    window.localStorage.setItem("actual-ly-synced", "true");
+    try {
+      window.localStorage.setItem("actual-ly-synced", "true");
+    } catch {
+      // ignore storage access errors
+    }
     router.replace("/dashboard");
     window.location.assign("/dashboard");
   }
