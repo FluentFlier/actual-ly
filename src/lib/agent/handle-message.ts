@@ -162,6 +162,7 @@ Respond with helpful next steps.`;
     input_text: message,
     output_text: finalReply,
     metadata: metadata ? { url: metadata.url, title: metadata.title } : {},
+    time_saved_seconds: metadata ? 90 : 0,
   });
 
   const { data: conversation } = await supabase

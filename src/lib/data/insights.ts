@@ -11,7 +11,7 @@ export async function getInsightsOverview(clerkId: string) {
 
   if (!user) return null;
 
-  const [{ count: actionCount }, { count: connectionsCount }, { count: savedCount }] =
+  const [{ count: actionCount }, { count: connectionsCount }, { count: savedCount }, { data: actions }] =
     await Promise.all([
       supabase
         .from("agent_actions")
@@ -26,13 +26,32 @@ export async function getInsightsOverview(clerkId: string) {
         .from("saved_items")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
+      supabase
+        .from("agent_actions")
+        .select("action_type, time_saved_seconds")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(200),
     ]);
+
+  const actionBreakdown = (actions ?? []).reduce<Record<string, number>>((acc, action) => {
+    const key = action.action_type || "other";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const timeSavedSeconds = (actions ?? []).reduce(
+    (sum, action) => sum + (action.time_saved_seconds ?? 0),
+    0,
+  );
 
   return {
     trustScore: user.trust_score,
     actionCount: actionCount ?? 0,
     connectionsCount: connectionsCount ?? 0,
     savedCount: savedCount ?? 0,
+    actionBreakdown,
+    timeSavedSeconds,
   };
 }
 

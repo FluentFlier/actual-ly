@@ -19,6 +19,13 @@ export type AgentActionInput = {
   collection?: string;
 };
 
+const TIME_SAVED_SECONDS: Record<AgentActionInput["type"], number> = {
+  save_link: 30,
+  create_reminder: 60,
+  create_calendar_event: 120,
+  send_email: 300,
+};
+
 export async function executeAgentActions({
   userId,
   actions,
@@ -63,6 +70,7 @@ export async function executeAgentActions({
         input_text: action.url,
         output_text: `Saved to ${collectionName}.`,
         metadata: { url: action.url, collection: collectionName },
+        time_saved_seconds: TIME_SAVED_SECONDS.save_link,
       });
 
       results.push(`Saved link to ${collectionName}.`);
@@ -84,6 +92,7 @@ export async function executeAgentActions({
           input_text: action.title || action.note || "Reminder",
           output_text: `Reminder set for ${remindAt.toLocaleString()}.`,
           metadata: { remind_at: remindAt.toISOString() },
+          time_saved_seconds: TIME_SAVED_SECONDS.create_reminder,
         });
 
         results.push(`Reminder set for ${remindAt.toLocaleString()}.`);
@@ -111,6 +120,7 @@ export async function executeAgentActions({
             input_text: action.title || "Calendar event",
             output_text: `Calendar event created for ${startAt.toLocaleString()}.`,
             metadata: { event_id: event?.id, start_at: startAt.toISOString(), end_at: endAt?.toISOString() },
+            time_saved_seconds: TIME_SAVED_SECONDS.create_calendar_event,
           });
 
           results.push(`Calendar event added for ${startAt.toLocaleString()}.`);
@@ -128,6 +138,7 @@ export async function executeAgentActions({
             input_text: action.title || "Calendar event",
             output_text: "Calendar not connected. Reminder queued instead.",
             metadata: { start_at: startAt.toISOString(), end_at: endAt?.toISOString() },
+            time_saved_seconds: TIME_SAVED_SECONDS.create_calendar_event,
           });
 
           results.push("Google Calendar not connected yet. I queued a reminder instead.");
@@ -151,6 +162,7 @@ export async function executeAgentActions({
           input_text: action.subject,
           output_text: `Email sent to ${action.to}.`,
           metadata: { to: action.to, subject: action.subject },
+          time_saved_seconds: TIME_SAVED_SECONDS.send_email,
         });
 
         results.push(`Email sent to ${action.to}.`);
@@ -161,6 +173,7 @@ export async function executeAgentActions({
           input_text: action.subject,
           output_text: "Gmail not connected.",
           metadata: { to: action.to, subject: action.subject },
+          time_saved_seconds: 0,
         });
 
         results.push("Gmail not connected yet. Connect Google to send emails.");

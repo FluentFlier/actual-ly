@@ -26,6 +26,7 @@ const sections = [
       { label: "Feed", href: "/dashboard/feed", icon: Rss },
       { label: "Saved", href: "/dashboard/saved", icon: FileText },
       { label: "Collections", href: "/dashboard/collections", icon: FileText },
+      { label: "Connections", href: "/dashboard/connections", icon: Users },
       { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
       { label: "Invites", href: "/dashboard/invites", icon: Users },
     ],

@@ -61,6 +61,42 @@ export default function CollectionsPage() {
     setIsSaving(false);
   }
 
+  async function handleRename(collection: Collection) {
+    const nextName = window.prompt("Rename collection", collection.name);
+    if (!nextName || !nextName.trim()) return;
+    const res = await fetch(`/api/collections/${collection.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+      },
+      body: JSON.stringify({ name: nextName.trim() }),
+    });
+    if (!res.ok) {
+      setStatus("Unable to rename.");
+      return;
+    }
+    setCollections((prev) =>
+      prev.map((item) => (item.id === collection.id ? { ...item, name: nextName.trim() } : item)),
+    );
+  }
+
+  async function handleDelete(collection: Collection) {
+    if (collection.is_default) return;
+    if (!window.confirm("Delete this collection?")) return;
+    const res = await fetch(`/api/collections/${collection.id}`, {
+      method: "DELETE",
+      headers: {
+        ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+      },
+    });
+    if (!res.ok) {
+      setStatus("Unable to delete.");
+      return;
+    }
+    setCollections((prev) => prev.filter((item) => item.id !== collection.id));
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
       <Card>
@@ -84,6 +120,19 @@ export default function CollectionsPage() {
                   {collection.is_default ? (
                     <p className="text-xs text-muted-foreground">Default collection</p>
                   ) : null}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleRename(collection)}>
+                    Rename
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={collection.is_default}
+                    onClick={() => handleDelete(collection)}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
             ))
