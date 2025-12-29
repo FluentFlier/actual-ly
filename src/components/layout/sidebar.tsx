@@ -25,6 +25,7 @@ const sections = [
       { label: "Overview", href: "/dashboard", icon: Home },
       { label: "Feed", href: "/dashboard/feed", icon: Rss },
       { label: "Saved", href: "/dashboard/saved", icon: FileText },
+      { label: "Collections", href: "/dashboard/collections", icon: FileText },
       { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
       { label: "Invites", href: "/dashboard/invites", icon: Users },
     ],
@@ -50,6 +51,7 @@ const sections = [
     items: [
       { label: "Profile", href: "/dashboard/settings/profile", icon: User },
       { label: "Integrations", href: "/dashboard/settings/integrations", icon: FileText },
+      { label: "Privacy", href: "/dashboard/settings/privacy", icon: Shield },
     ],
   },
   {

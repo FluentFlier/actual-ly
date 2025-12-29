@@ -124,39 +124,6 @@ Respond with helpful next steps.`;
 
   let reply = typeof parsed?.reply === "string" ? parsed.reply.trim() : rawText;
   const actions = normalizeActions(Array.isArray(parsed?.actions) ? parsed.actions : []);
-
-  await supabase.from("agent_actions").insert({
-    user_id: user.id,
-    action_type: metadata ? "summary" : "chat",
-    input_text: message,
-    output_text: reply,
-    metadata: metadata ? { url: metadata.url, title: metadata.title } : {},
-  });
-
-  const { data: conversation } = await supabase
-    .from("agent_conversations")
-    .select("id, messages")
-    .eq("user_id", user.id)
-    .eq("channel", channel)
-    .maybeSingle();
-
-  const updatedMessages = [
-    ...(conversation?.messages ?? []),
-    { role: "user", content: message, at: new Date().toISOString() },
-    { role: "assistant", content: reply, at: new Date().toISOString() },
-  ];
-
-  if (conversation) {
-    await supabase
-      .from("agent_conversations")
-      .update({ messages: updatedMessages })
-      .eq("id", conversation.id);
-  } else {
-    await supabase
-      .from("agent_conversations")
-      .insert({ user_id: user.id, channel, messages: updatedMessages });
-  }
-
   const filteredActions = actions.filter(
     (action): action is NonNullable<typeof action> => action !== null,
   );
@@ -171,7 +138,7 @@ Respond with helpful next steps.`;
   }
 
   if (metadata && actions.length === 0) {
-    await executeAgentActions({
+    const autoSaveResults = await executeAgentActions({
       userId: user.id,
       actions: [
         {
@@ -182,9 +149,46 @@ Respond with helpful next steps.`;
         },
       ],
     });
+    actionResults.push(...autoSaveResults);
   }
 
-  return actionResults.length ? `${reply}\n\n${actionResults.join(" ")}` : reply;
+  const finalReply = actionResults.length
+    ? `${reply}\n\n${actionResults.join(" ")}`
+    : reply;
+
+  await supabase.from("agent_actions").insert({
+    user_id: user.id,
+    action_type: metadata ? "summary" : "chat",
+    input_text: message,
+    output_text: finalReply,
+    metadata: metadata ? { url: metadata.url, title: metadata.title } : {},
+  });
+
+  const { data: conversation } = await supabase
+    .from("agent_conversations")
+    .select("id, messages")
+    .eq("user_id", user.id)
+    .eq("channel", channel)
+    .maybeSingle();
+
+  const updatedMessages = [
+    ...(conversation?.messages ?? []),
+    { role: "user", content: message, at: new Date().toISOString() },
+    { role: "assistant", content: finalReply, at: new Date().toISOString() },
+  ];
+
+  if (conversation) {
+    await supabase
+      .from("agent_conversations")
+      .update({ messages: updatedMessages })
+      .eq("id", conversation.id);
+  } else {
+    await supabase
+      .from("agent_conversations")
+      .insert({ user_id: user.id, channel, messages: updatedMessages });
+  }
+
+  return finalReply;
 }
 
 async function analyzeContentWithAI(text: string, url: string) {

@@ -4,13 +4,21 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 type Settings = {
   tone?: "casual" | "professional" | "minimal";
   proactivity?: "high" | "medium" | "low";
   verbosity?: "detailed" | "concise" | "tldr";
+  workHours?: {
+    enabled: boolean;
+    start: string;
+    end: string;
+    timezone: string;
+  };
   enabledChannels?: {
     sms: boolean;
+    whatsapp: boolean;
     web: boolean;
   };
 };
@@ -19,15 +27,24 @@ const defaultSettings: Settings = {
   tone: "professional",
   proactivity: "medium",
   verbosity: "concise",
-  enabledChannels: { sms: false, web: true },
+  workHours: {
+    enabled: false,
+    start: "09:00",
+    end: "18:00",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  },
+  enabledChannels: { sms: false, whatsapp: false, web: true },
 };
 
 export function AgentSettingsForm() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [status, setStatus] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!isLoaded) return;
+    setIsLoading(true);
     fetch("/api/agent/settings", {
       headers: {
         ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
@@ -39,8 +56,9 @@ export function AgentSettingsForm() {
           setSettings({ ...defaultSettings, ...data.settings });
         }
       })
-      .catch(() => null);
-  }, [user?.id]);
+      .catch(() => setStatus("Unable to load settings."))
+      .finally(() => setIsLoading(false));
+  }, [isLoaded, user?.id]);
 
   async function handleSave() {
     setStatus("Saving...");
@@ -63,6 +81,7 @@ export function AgentSettingsForm() {
 
   return (
     <div className="space-y-4">
+      {isLoading ? <p className="text-sm text-muted-foreground">Loading settings…</p> : null}
       <Card className="space-y-3 p-4">
         <p className="text-sm font-semibold">Tone</p>
         <div className="flex flex-wrap gap-2">
@@ -118,14 +137,18 @@ export function AgentSettingsForm() {
       <Card className="space-y-3 p-4">
         <p className="text-sm font-semibold">Channels</p>
         <div className="flex flex-wrap gap-2">
-          {(["sms", "web"] as const).map((channel) => (
+          {(["sms", "whatsapp", "web"] as const).map((channel) => (
             <Button
               key={channel}
               variant={settings.enabledChannels?.[channel] ? "primary" : "outline"}
               size="sm"
               onClick={() =>
                 setSettings((prev) => {
-                  const current = prev.enabledChannels ?? { sms: false, web: true };
+                  const current = prev.enabledChannels ?? {
+                    sms: false,
+                    whatsapp: false,
+                    web: true,
+                  };
                   return {
                     ...prev,
                     enabledChannels: {
@@ -140,6 +163,68 @@ export function AgentSettingsForm() {
             </Button>
           ))}
         </div>
+      </Card>
+
+      <Card className="space-y-3 p-4">
+        <p className="text-sm font-semibold">Work hours</p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={settings.workHours?.enabled ? "primary" : "outline"}
+            size="sm"
+            onClick={() =>
+              setSettings((prev) => ({
+                ...prev,
+                workHours: {
+                  ...(prev.workHours ?? defaultSettings.workHours!),
+                  enabled: !(prev.workHours?.enabled ?? false),
+                },
+              }))
+            }
+          >
+            {settings.workHours?.enabled ? "Enabled" : "Disabled"}
+          </Button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input
+            type="time"
+            value={settings.workHours?.start || "09:00"}
+            onChange={(event) =>
+              setSettings((prev) => ({
+                ...prev,
+                workHours: {
+                  ...(prev.workHours ?? defaultSettings.workHours!),
+                  start: event.target.value,
+                },
+              }))
+            }
+          />
+          <Input
+            type="time"
+            value={settings.workHours?.end || "18:00"}
+            onChange={(event) =>
+              setSettings((prev) => ({
+                ...prev,
+                workHours: {
+                  ...(prev.workHours ?? defaultSettings.workHours!),
+                  end: event.target.value,
+                },
+              }))
+            }
+          />
+        </div>
+        <Input
+          value={settings.workHours?.timezone || defaultSettings.workHours?.timezone || "UTC"}
+          onChange={(event) =>
+            setSettings((prev) => ({
+              ...prev,
+              workHours: {
+                ...(prev.workHours ?? defaultSettings.workHours!),
+                timezone: event.target.value,
+              },
+            }))
+          }
+          placeholder="Timezone"
+        />
       </Card>
 
       <div className="flex items-center gap-3">

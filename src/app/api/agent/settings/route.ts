@@ -65,9 +65,29 @@ export async function PATCH(request: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+  const { data: existing } = await supabase
+    .from("users")
+    .select("agent_settings")
+    .eq("clerk_id", userId)
+    .single();
+
+  const current = (existing?.agent_settings ?? {}) as Record<string, any>;
+  const next = {
+    ...current,
+    ...parsed.data,
+    enabledChannels: {
+      ...(current.enabledChannels ?? {}),
+      ...(parsed.data.enabledChannels ?? {}),
+    },
+    workHours: {
+      ...(current.workHours ?? {}),
+      ...(parsed.data.workHours ?? {}),
+    },
+  };
+
   const { error } = await supabase
     .from("users")
-    .update({ agent_settings: parsed.data })
+    .update({ agent_settings: next })
     .eq("clerk_id", userId);
 
   if (error) {

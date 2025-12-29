@@ -62,6 +62,7 @@ export default function VerifyPage() {
     if (!isSignedIn) return;
     const mode = searchParams.get("mode");
     if (mode === "integrations") {
+      setStatus("Finish connecting your integrations, then return to the dashboard.");
       return;
     }
     if (window.localStorage.getItem("actual-ly-synced") === "true") {
@@ -221,6 +222,23 @@ export default function VerifyPage() {
       <div className="rounded-2xl border border-dashed border-border px-4 py-3 text-xs text-muted-foreground">
         Need Google Calendar or Gmail? Open “Connected accounts” in the panel above to link Google.
       </div>
+
+      {searchParams.get("mode") === "integrations" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Integration setup</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Connect Google in the panel above, then head back to Integrations to verify status.
+            </p>
+            <Button variant="outline" onClick={() => router.push("/dashboard/settings/integrations")}
+            >
+              Back to integrations
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {isSignedIn && !userHasUsername ? (
         <Card>

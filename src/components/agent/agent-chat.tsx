@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,20 @@ export function AgentChat() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClearing, setIsClearing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  const devBypassEnabled = useMemo(() => {
+    return (
+      process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true" ||
+      process.env.NEXT_PUBLIC_DEV_BYPASS === "true"
+    );
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (!isSignedIn && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH !== "true") return;
+    if (!isSignedIn && !devBypassEnabled) return;
+    setIsLoading(true);
     fetch("/api/agent/conversation", {
       credentials: "include",
       headers: {
@@ -41,12 +51,19 @@ export function AgentChat() {
       })
       .catch(() => {
         setError("Unable to load conversation.");
-      });
-  }, [isLoaded, isSignedIn, user?.id]);
+      })
+      .finally(() => setIsLoading(false));
+  }, [isLoaded, isSignedIn, user?.id, devBypassEnabled]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages, isSending]);
 
   async function handleSend() {
     if (!input.trim() || isSending) return;
-    if (!isSignedIn && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH !== "true") {
+    if (!isSignedIn && !devBypassEnabled) {
       setError("Sign in to chat with your agent.");
       return;
     }
@@ -70,6 +87,11 @@ export function AgentChat() {
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          setError("Sign in to chat with your agent.");
+        } else {
+          setError("Sorry, I hit a snag. Try again.");
+        }
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: "Sorry, I hit a snag. Try again." },
@@ -121,8 +143,11 @@ export function AgentChat() {
             {isClearing ? "Clearing" : "Clear"}
           </Button>
         </div>
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
-          {messages.length === 0 ? (
+        <div ref={scrollerRef} className="flex flex-1 flex-col gap-3 overflow-y-auto">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading conversation…</p>
+          ) : null}
+          {!isLoading && messages.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Say hello to your agent. Drop a link or ask for a summary.
             </p>
@@ -146,6 +171,24 @@ export function AgentChat() {
           ) : null}
         </div>
         {error ? <p className="text-xs text-red-500">{error}</p> : null}
+        <div className="flex flex-wrap gap-2">
+          {[
+            "Summarize this link",
+            "Save this link to Reading List",
+            "Remind me tomorrow at 9am",
+            "Add a meeting to my calendar",
+          ].map((prompt) => (
+            <Button
+              key={prompt}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setInput(prompt)}
+            >
+              {prompt}
+            </Button>
+          ))}
+        </div>
         <div className="flex gap-3">
           <Input
             value={input}

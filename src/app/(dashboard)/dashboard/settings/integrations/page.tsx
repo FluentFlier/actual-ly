@@ -19,6 +19,7 @@ const integrations = [
 export default function IntegrationsPage() {
   const { user } = useUser();
   const [googleConnected, setGoogleConnected] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/integrations/google/status", {
@@ -37,6 +38,7 @@ export default function IntegrationsPage() {
         <CardTitle>Integrations</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {status ? <p className="text-xs text-muted-foreground">{status}</p> : null}
         {integrations.map((name) => (
           <div
             key={name}
@@ -53,18 +55,43 @@ export default function IntegrationsPage() {
               )}
             </div>
             {name.startsWith("Google") ? (
-              <Button
-                variant={googleConnected ? "secondary" : "outline"}
-                size="sm"
-                onClick={async () => {
-                  if (googleConnected) return;
-                  window.location.href = user?.id
-                    ? "/verify?mode=integrations"
-                    : "/sign-in?redirect_url=/verify?mode=integrations";
-                }}
-              >
-                {googleConnected ? "Connected" : "Connect"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={googleConnected ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={async () => {
+                    if (googleConnected) return;
+                    window.location.href = user?.id
+                      ? "/verify?mode=integrations"
+                      : "/sign-in?redirect_url=/verify?mode=integrations";
+                  }}
+                >
+                  {googleConnected ? "Connected" : "Connect"}
+                </Button>
+                {googleConnected ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      setStatus("Disconnecting...");
+                      const res = await fetch("/api/integrations/google", {
+                        method: "DELETE",
+                        headers: {
+                          ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+                        },
+                      });
+                      if (res.ok) {
+                        setGoogleConnected(false);
+                        setStatus("Disconnected.");
+                      } else {
+                        setStatus("Unable to disconnect.");
+                      }
+                    }}
+                  >
+                    Disconnect
+                  </Button>
+                ) : null}
+              </div>
             ) : (
               <Button variant="outline" size="sm" disabled>
                 Coming soon

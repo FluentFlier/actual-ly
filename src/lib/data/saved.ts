@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
-export async function getSavedItems(clerkId?: string | null) {
+export async function getSavedItems(clerkId?: string | null, collectionId?: string | null) {
   const supabase = getSupabaseAdmin();
   let userId: string | null = null;
   if (clerkId) {
@@ -26,14 +26,18 @@ export async function getSavedItems(clerkId?: string | null) {
     return [] as Array<Record<string, unknown>>;
   }
 
-  const { data } = await supabase
+  let query = supabase
     .from("saved_items")
     .select(
       "id, url, title, description, image_url, ai_summary, created_at, collections (name, icon)",
     )
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(50);
+    .eq("user_id", userId);
+
+  if (collectionId) {
+    query = query.eq("collection_id", collectionId);
+  }
+
+  const { data } = await query.order("created_at", { ascending: false }).limit(50);
 
   return data ?? [];
 }

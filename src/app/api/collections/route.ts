@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { ensureDefaultCollections } from "@/lib/data/collections";
 
 const schema = z.object({
   name: z.string().min(1).max(50),
@@ -28,6 +29,8 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
+
+  await ensureDefaultCollections(user.id);
 
   const { data } = await supabase
     .from("collections")

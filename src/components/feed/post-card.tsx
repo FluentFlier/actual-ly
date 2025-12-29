@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { Bookmark, Heart, MessageCircle, Share2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,7 @@ export function PostCard({ post }: { post: Post }) {
   const [commentInput, setCommentInput] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [pollOptions, setPollOptions] = useState(post.poll_options ?? []);
+  const [isSaving, setIsSaving] = useState(false);
 
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, {
@@ -115,6 +116,28 @@ export function PostCard({ post }: { post: Post }) {
     if (Array.isArray(data?.poll_options)) {
       setPollOptions(data.poll_options);
     }
+  }
+
+  async function handleSave() {
+    if (!post.link_url || isSaving) return;
+    setIsSaving(true);
+    const res = await fetch("/api/saved", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+      },
+      body: JSON.stringify({
+        url: post.link_url,
+        title: post.link_preview?.title || post.link_url,
+      }),
+    });
+    if (!res.ok) {
+      setStatus("Unable to save.");
+    } else {
+      setStatus("Saved.");
+    }
+    setIsSaving(false);
   }
 
   return (
@@ -187,6 +210,12 @@ export function PostCard({ post }: { post: Post }) {
         <Button variant="outline" size="sm">
           <Share2 className="mr-2 h-4 w-4" /> Share
         </Button>
+        {post.link_url ? (
+          <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
+            <Bookmark className="mr-2 h-4 w-4" /> {isSaving ? "Saving" : "Save"}
+          </Button>
+        ) : null}
+        {status ? <span className="text-xs text-muted-foreground">{status}</span> : null}
       </div>
       {commentsOpen ? (
         <div className="mt-4 space-y-3">

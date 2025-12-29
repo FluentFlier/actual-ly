@@ -83,6 +83,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  await supabase.from("agent_conversations").delete().eq("user_id", user.id);
+  await supabase
+    .from("agent_conversations")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("channel", "web");
   return NextResponse.json({ success: true });
 }
