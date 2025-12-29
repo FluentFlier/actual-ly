@@ -49,7 +49,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="flex-1">
-          <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-emerald-50 dark:from-card dark:via-card dark:to-emerald-950/20">
+          <Card className="relative overflow-hidden bg-background sm:bg-gradient-to-br sm:from-white sm:via-white sm:to-emerald-50 dark:sm:from-card dark:sm:via-card dark:sm:to-emerald-950/20">
             <div className="absolute right-6 top-6 rounded-full bg-emerald-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-600">
               Demo Snapshot
             </div>
