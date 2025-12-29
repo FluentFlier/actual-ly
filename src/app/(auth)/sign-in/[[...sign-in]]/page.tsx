@@ -9,6 +9,7 @@ export default function SignInPage() {
         },
       }}
       redirectUrl="/verify"
+      afterSignInUrl="/verify"
     />
   );
 }

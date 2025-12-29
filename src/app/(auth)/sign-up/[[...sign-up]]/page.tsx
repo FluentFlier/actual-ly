@@ -18,6 +18,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
         },
       }}
       redirectUrl={redirectUrl}
+      afterSignUpUrl={redirectUrl}
     />
   );
 }

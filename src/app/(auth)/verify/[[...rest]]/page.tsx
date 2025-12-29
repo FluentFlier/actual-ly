@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUser, UserProfile } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, useAuth, useUser, UserProfile } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ const USERNAME_REGEX = /^[a-z0-9_]{10,50}$/;
 export default function VerifyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isSignedIn } = useAuth();
   const { user, isLoaded } = useUser();
   const [username, setUsername] = useState("");
   const [userHasUsername, setUserHasUsername] = useState(false);
@@ -30,15 +31,15 @@ export default function VerifyPage() {
   );
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isSignedIn) return;
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setUserHasUsername(Boolean(data?.user?.username)))
       .catch(() => setUserHasUsername(false));
-  }, [isLoaded]);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
-    if (!queryUsername || userHasUsername) return;
+    if (!queryUsername || userHasUsername || !isSignedIn) return;
 
     fetch("/api/auth/claim-username", {
       method: "POST",
@@ -49,6 +50,10 @@ export default function VerifyPage() {
   }, [queryUsername, userHasUsername]);
 
   async function handleClaim() {
+    if (!isSignedIn) {
+      setStatus("Please sign in first.");
+      return;
+    }
     if (!USERNAME_REGEX.test(username)) {
       setStatus("Invalid username format.");
       return;
@@ -72,6 +77,10 @@ export default function VerifyPage() {
   }
 
   async function handleContinue() {
+    if (!isSignedIn) {
+      setStatus("Please sign in first.");
+      return;
+    }
     setStatus("Syncing profile...");
     const res = await fetch("/api/auth/sync-profile", {
       method: "POST",
@@ -86,6 +95,28 @@ export default function VerifyPage() {
 
   return (
     <div className="w-full space-y-6">
+      {!isSignedIn ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign in to verify</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Please sign in or create an account to claim your username and verify
+              your phone + email.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <SignInButton mode="modal">
+                <Button>Sign in</Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button variant="outline">Create account</Button>
+              </SignUpButton>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Verify your identity</CardTitle>
@@ -126,7 +157,7 @@ export default function VerifyPage() {
         </CardContent>
       </Card>
 
-      {!userHasUsername ? (
+      {isSignedIn && !userHasUsername ? (
         <Card>
           <CardHeader>
             <CardTitle>Claim your username</CardTitle>
