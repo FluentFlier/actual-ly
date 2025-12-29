@@ -27,14 +27,14 @@ export default function InvitesPage() {
           <InviteForm />
         </CardContent>
       </Card>
-      <Card className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />
             Verified‑only access
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-200">
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>Invites are limited to keep Actual.ly real. Each person verifies once.</p>
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">Phone check</Badge>

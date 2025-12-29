@@ -39,13 +39,13 @@ export default async function FeedPage() {
         </Card>
       </div>
       <div className="space-y-6">
-        <Card className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+        <Card>
           <CardHeader>
             <CardTitle>Feed Intelligence</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-200">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Every post is tied to a verified human. No bots, no spam.</p>
-            <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs">
+            <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-muted/40 px-3 py-2 text-xs">
               <Sparkles className="h-4 w-4" />
               AI summaries will auto-populate soon.
             </div>
