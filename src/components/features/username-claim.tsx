@@ -98,7 +98,11 @@ export function UsernameClaim() {
             {status === "checking" ? "Checking…" : status === "available" ? "Available" : null}
           </span>
         </div>
-        <Button onClick={handleSubmit} size="lg" className="w-full sm:w-auto">
+        <Button
+          onClick={handleSubmit}
+          size="lg"
+          className="w-full bg-[#b1251b] text-white hover:bg-[#8f1d14] sm:w-auto"
+        >
           Get started
         </Button>
       </div>
