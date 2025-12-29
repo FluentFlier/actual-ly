@@ -9,9 +9,9 @@ const schema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: { id: string } },
 ) {
-  const { id } = await params;
+  const { id } = params;
   let { userId } = auth();
   if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
     const headerId = request.headers.get("x-clerk-user-id");
