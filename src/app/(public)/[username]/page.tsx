@@ -5,6 +5,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ConnectButton } from "@/components/profile/connect-button";
+import Link from "next/link";
 
 type PageProps = {
   params: { username: string };
@@ -46,8 +48,10 @@ export default async function ProfilePage({ params }: PageProps) {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">Message</Button>
-            <Button>Connect</Button>
+            <Button asChild variant="outline">
+              <Link href="/dashboard/messages">Message</Link>
+            </Button>
+            <ConnectButton targetUserId={user.id} />
           </div>
         </CardHeader>
         <CardContent className="space-y-6">

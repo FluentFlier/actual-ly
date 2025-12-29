@@ -17,14 +17,37 @@ export async function POST(request: Request) {
   });
 
   try {
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
     if (!authToken) {
       return new NextResponse("Twilio auth token missing", { status: 500 });
     }
 
-    const valid = twilio.validateRequest(authToken, signature, request.url, params);
+    const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+    const proto = request.headers.get("x-forwarded-proto") || "https";
+    const url = new URL(request.url);
+    const basePath = `${url.pathname}${url.search}`;
+    const candidates = new Set<string>();
+
+    candidates.add(request.url);
+    if (host) {
+      candidates.add(`${proto}://${host}${basePath}`);
+      candidates.add(`${proto}://${host}${url.pathname}`);
+    }
+
+    let valid = false;
+    for (const candidate of candidates) {
+      if (twilio.validateRequest(authToken, signature, candidate, params)) {
+        valid = true;
+        break;
+      }
+    }
 
     if (!valid) {
+      console.warn("Twilio signature invalid", {
+        host,
+        proto,
+        candidates: Array.from(candidates),
+      });
       return new NextResponse("Invalid signature", { status: 403 });
     }
   } catch {

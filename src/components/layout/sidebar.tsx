@@ -24,6 +24,7 @@ const sections = [
     items: [
       { label: "Overview", href: "/dashboard", icon: Home },
       { label: "Feed", href: "/dashboard/feed", icon: Rss },
+      { label: "Saved", href: "/dashboard/saved", icon: FileText },
       { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
       { label: "Invites", href: "/dashboard/invites", icon: Users },
     ],
@@ -71,6 +72,10 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 flex-col border-r border-border/60 bg-sidebar px-4 py-6 lg:flex">
       <div className="space-y-6">
+        <div className="rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-3 py-4 text-white">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Actual.ly</p>
+          <p className="mt-2 text-sm text-slate-200">Verified people. Automated follow‑ups.</p>
+        </div>
         {sections
           .filter((section) => section.label !== "Admin" || isAdmin)
           .map((section) => (

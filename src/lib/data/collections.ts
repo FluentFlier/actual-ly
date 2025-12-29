@@ -42,3 +42,14 @@ export async function getDefaultCollectionId(userId: string, name: string) {
 
   return data?.id ?? null;
 }
+
+export async function getCollections(userId: string) {
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from("collections")
+    .select("id, name, icon, is_default")
+    .eq("user_id", userId)
+    .order("position", { ascending: true });
+
+  return data ?? [];
+}

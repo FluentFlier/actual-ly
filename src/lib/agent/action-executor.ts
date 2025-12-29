@@ -1,15 +1,21 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { fetchMetadata } from "@/lib/agent/link-metadata";
-import { getDefaultCollectionId } from "@/lib/data/collections";
+import { ensureDefaultCollections, getDefaultCollectionId } from "@/lib/data/collections";
+import { createGoogleCalendarEvent, getGoogleAccessToken } from "@/lib/integrations/google";
 
 export type AgentActionInput = {
-  type: "save_link" | "create_reminder" | "create_calendar_event";
+  type: "save_link" | "create_reminder" | "create_calendar_event" | "send_email";
   url?: string;
   remind_at?: string;
   title?: string;
   start_at?: string;
   end_at?: string;
   note?: string;
+  location?: string;
+  attendees?: string[];
+  to?: string;
+  subject?: string;
+  body?: string;
   collection?: string;
 };
 
@@ -22,12 +28,24 @@ export async function executeAgentActions({
 }) {
   const supabase = getSupabaseAdmin();
   const results: string[] = [];
+  const { data: user } = await supabase
+    .from("users")
+    .select("clerk_id")
+    .eq("id", userId)
+    .single();
+  const clerkId = user?.clerk_id ?? null;
 
   for (const action of actions) {
     if (action.type === "save_link" && action.url) {
       const metadata = await fetchMetadata(action.url);
-      const collectionName = action.collection || (metadata?.title && /job|career|apply/i.test(metadata.title) ? "Jobs" : "Reading List");
-      const collectionId = await getDefaultCollectionId(userId, collectionName);
+      const collectionName =
+        action.collection ||
+        (metadata?.title && /job|career|apply/i.test(metadata.title) ? "Jobs" : "Reading List");
+      let collectionId = await getDefaultCollectionId(userId, collectionName);
+      if (!collectionId) {
+        await ensureDefaultCollections(userId);
+        collectionId = await getDefaultCollectionId(userId, collectionName);
+      }
 
       await supabase.from("saved_items").insert({
         user_id: userId,
@@ -76,22 +94,76 @@ export async function executeAgentActions({
       const startAt = new Date(action.start_at);
       const endAt = action.end_at ? new Date(action.end_at) : null;
       if (!Number.isNaN(startAt.getTime())) {
-        await supabase.from("reminders").insert({
-          user_id: userId,
-          content: action.title || "Calendar event",
-          remind_at: startAt.toISOString(),
-          status: "pending",
+        const token = clerkId ? await getGoogleAccessToken(clerkId) : null;
+        if (token) {
+          const event = await createGoogleCalendarEvent(token, {
+            title: action.title || "Calendar event",
+            startAt: startAt.toISOString(),
+            endAt: endAt?.toISOString() ?? undefined,
+            description: action.note,
+            location: action.location,
+            attendees: action.attendees,
+          });
+
+          await supabase.from("agent_actions").insert({
+            user_id: userId,
+            action_type: "calendar",
+            input_text: action.title || "Calendar event",
+            output_text: `Calendar event created for ${startAt.toLocaleString()}.`,
+            metadata: { event_id: event?.id, start_at: startAt.toISOString(), end_at: endAt?.toISOString() },
+          });
+
+          results.push(`Calendar event added for ${startAt.toLocaleString()}.`);
+        } else {
+          await supabase.from("reminders").insert({
+            user_id: userId,
+            content: action.title || "Calendar event",
+            remind_at: startAt.toISOString(),
+            status: "pending",
+          });
+
+          await supabase.from("agent_actions").insert({
+            user_id: userId,
+            action_type: "calendar",
+            input_text: action.title || "Calendar event",
+            output_text: "Calendar not connected. Reminder queued instead.",
+            metadata: { start_at: startAt.toISOString(), end_at: endAt?.toISOString() },
+          });
+
+          results.push("Google Calendar not connected yet. I queued a reminder instead.");
+        }
+      }
+    }
+
+    if (action.type === "send_email" && action.to && action.subject && action.body) {
+      const token = clerkId ? await getGoogleAccessToken(clerkId) : null;
+      if (token) {
+        const { sendGmailMessage } = await import("@/lib/integrations/google");
+        await sendGmailMessage(token, {
+          to: action.to,
+          subject: action.subject,
+          body: action.body,
         });
 
         await supabase.from("agent_actions").insert({
           user_id: userId,
-          action_type: "calendar",
-          input_text: action.title || "Calendar event",
-          output_text: `Calendar event queued for ${startAt.toLocaleString()}.`,
-          metadata: { start_at: startAt.toISOString(), end_at: endAt?.toISOString() },
+          action_type: "email",
+          input_text: action.subject,
+          output_text: `Email sent to ${action.to}.`,
+          metadata: { to: action.to, subject: action.subject },
         });
 
-        results.push(`Calendar event queued for ${startAt.toLocaleString()}.`);
+        results.push(`Email sent to ${action.to}.`);
+      } else {
+        await supabase.from("agent_actions").insert({
+          user_id: userId,
+          action_type: "email",
+          input_text: action.subject,
+          output_text: "Gmail not connected.",
+          metadata: { to: action.to, subject: action.subject },
+        });
+
+        results.push("Gmail not connected yet. Connect Google to send emails.");
       }
     }
   }

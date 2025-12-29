@@ -25,7 +25,8 @@ export default function VerifyPage() {
   const emailVerified =
     user?.primaryEmailAddress?.verification?.status === "verified";
 
-  const canContinue = phoneVerified && emailVerified && userHasUsername;
+  const canContinue =
+    isSignedIn && (userHasUsername || process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true");
 
   const queryUsername = useMemo(
     () => searchParams.get("username")?.toLowerCase() || "",
@@ -56,6 +57,17 @@ export default function VerifyPage() {
       body: JSON.stringify({ username: queryUsername }),
     }).then(() => setUserHasUsername(true));
   }, [queryUsername, userHasUsername]);
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    const mode = searchParams.get("mode");
+    if (mode === "integrations") {
+      return;
+    }
+    if (window.localStorage.getItem("actual-ly-synced") === "true") {
+      window.location.assign("/dashboard");
+    }
+  }, [isSignedIn, searchParams]);
 
   async function handleClaim() {
     if (!isSignedIn) {
@@ -115,8 +127,12 @@ export default function VerifyPage() {
       } catch {
         data = {};
       }
-      setStatus(data?.error || "Unable to sync profile.");
-      return;
+      if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
+        setStatus("Sync skipped (dev mode). Redirecting...");
+      } else {
+        setStatus(data?.error || "Unable to sync profile.");
+        return;
+      }
     }
     try {
       const data = await res.json();
@@ -127,8 +143,10 @@ export default function VerifyPage() {
     } catch {
       // ignore
     }
+    setStatus("Redirecting to dashboard...");
+    window.localStorage.setItem("actual-ly-synced", "true");
     router.replace("/dashboard");
-    window.location.href = "/dashboard";
+    window.location.assign("/dashboard");
   }
 
   return (
@@ -178,26 +196,31 @@ export default function VerifyPage() {
               </span>
             </div>
           </div>
-          <div className="flex justify-center">
-            <div className="w-full max-w-3xl rounded-2xl border border-border bg-background/80 p-4 shadow-sm">
-              <UserProfile
-                routing="hash"
-                appearance={{
-                  elements: {
-                    rootBox: "w-full",
-                    cardBox: "w-full",
-                    card: "shadow-none border-transparent bg-transparent p-0",
-                    navbar: "hidden",
-                    pageScrollBox: "max-h-[420px] overflow-y-auto",
-                    headerTitle: "text-base",
-                    headerSubtitle: "text-xs",
-                  },
-                }}
-              />
-            </div>
-          </div>
         </CardContent>
       </Card>
+
+      <div className="flex justify-center">
+        <div className="flex w-full max-w-4xl justify-center">
+          <UserProfile
+            routing="hash"
+            appearance={{
+              elements: {
+                rootBox: "w-full",
+                cardBox: "w-full",
+                card: "shadow-lg border border-border bg-background/90 mx-auto",
+                navbar: "hidden",
+                pageScrollBox: "max-h-none",
+                headerTitle: "text-base",
+                headerSubtitle: "text-xs",
+              },
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-dashed border-border px-4 py-3 text-xs text-muted-foreground">
+        Need Google Calendar or Gmail? Open “Connected accounts” in the panel above to link Google.
+      </div>
 
       {isSignedIn && !userHasUsername ? (
         <Card>

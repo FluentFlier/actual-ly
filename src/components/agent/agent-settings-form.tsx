@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -23,11 +24,16 @@ const defaultSettings: Settings = {
 };
 
 export function AgentSettingsForm() {
+  const { user } = useUser();
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/agent/settings")
+    fetch("/api/agent/settings", {
+      headers: {
+        ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data?.settings) {
@@ -35,13 +41,16 @@ export function AgentSettingsForm() {
         }
       })
       .catch(() => null);
-  }, []);
+  }, [user?.id]);
 
   async function handleSave() {
     setStatus("Saving...");
     const res = await fetch("/api/agent/settings", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+      },
       body: JSON.stringify(settings),
     });
 

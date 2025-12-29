@@ -29,7 +29,13 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/verify"
+      afterSignUpUrl="/verify"
+    >
       <html lang="en" suppressHydrationWarning>
         <body
           className={`${sora.variable} ${plexMono.variable} antialiased font-sans`}

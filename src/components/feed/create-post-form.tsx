@@ -13,30 +13,45 @@ export function CreatePostForm() {
   const [content, setContent] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [type, setType] = useState<(typeof postTypes)[number]>("text");
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
   const [status, setStatus] = useState<string | null>(null);
+  const [isPosting, setIsPosting] = useState(false);
 
   async function handleSubmit() {
+    if (!content.trim()) return;
+    setIsPosting(true);
     setStatus("Posting...");
-    const res = await fetch("/api/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        content,
-        type,
-        linkUrl: linkUrl || undefined,
-      }),
-    });
+    try {
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content,
+          type,
+          linkUrl: linkUrl || undefined,
+          pollOptions:
+            type === "poll"
+              ? pollOptions.map((option) => option.trim()).filter(Boolean)
+              : undefined,
+        }),
+      });
 
-    if (!res.ok) {
-      const data = await res.json();
-      setStatus(data?.error || "Unable to post.");
-      return;
+      if (!res.ok) {
+        const data = await res.json();
+        setStatus(data?.error || "Unable to post.");
+        return;
+      }
+
+      setContent("");
+      setLinkUrl("");
+      setPollOptions(["", ""]);
+      setStatus("Posted.");
+      router.refresh();
+    } catch {
+      setStatus("Post failed. Check your connection and try again.");
+    } finally {
+      setIsPosting(false);
     }
-
-    setContent("");
-    setLinkUrl("");
-    setStatus("Posted.");
-    router.refresh();
   }
 
   return (
@@ -66,9 +81,33 @@ export function CreatePostForm() {
           placeholder="Paste a link"
         />
       ) : null}
+      {type === "poll" ? (
+        <div className="space-y-2">
+          {pollOptions.map((option, index) => (
+            <Input
+              key={`poll-${index}`}
+              value={option}
+              onChange={(event) => {
+                const next = [...pollOptions];
+                next[index] = event.target.value;
+                setPollOptions(next);
+              }}
+              placeholder={`Option ${index + 1}`}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPollOptions((prev) => [...prev, ""])}
+          >
+            Add option
+          </Button>
+        </div>
+      ) : null}
       <div className="flex items-center gap-3">
-        <Button onClick={handleSubmit} disabled={!content.trim()}>
-          Publish
+        <Button onClick={handleSubmit} disabled={!content.trim() || isPosting}>
+          {isPosting ? "Posting..." : "Publish"}
         </Button>
         {status ? <span className="text-xs text-muted-foreground">{status}</span> : null}
       </div>

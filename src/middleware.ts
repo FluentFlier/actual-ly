@@ -1,9 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/api/(.*)",
-]);
+const isProtectedRoute = createRouteMatcher(["/api/(.*)"]);
 
 const isPublicApiRoute = createRouteMatcher([
   "/api/auth/username-available",
@@ -13,6 +10,9 @@ const isPublicApiRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware((auth, req) => {
+  if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
+    return;
+  }
   if (isPublicApiRoute(req)) {
     return;
   }

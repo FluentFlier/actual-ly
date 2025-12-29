@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Send } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -12,40 +13,111 @@ type Message = {
 };
 
 export function AgentChat() {
+  const { user, isLoaded, isSignedIn } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH !== "true") return;
+    fetch("/api/agent/conversation", {
+      credentials: "include",
+      headers: {
+        ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data?.messages)) {
+          const restored = data.messages.map((message: Message) => ({
+            role: message.role,
+            content: message.content,
+          }));
+          setMessages(restored);
+        }
+      })
+      .catch(() => {
+        setError("Unable to load conversation.");
+      });
+  }, [isLoaded, isSignedIn, user?.id]);
 
   async function handleSend() {
-    if (!input.trim()) return;
+    if (!input.trim() || isSending) return;
+    if (!isSignedIn && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH !== "true") {
+      setError("Sign in to chat with your agent.");
+      return;
+    }
     const nextMessages = [...messages, { role: "user", content: input.trim() }];
     setMessages(nextMessages);
     setInput("");
     setIsSending(true);
+    setError(null);
 
-    const res = await fetch("/api/agent/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input.trim() }),
-    });
+    try {
+      const res = await fetch("/api/agent/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+        },
+        body: JSON.stringify({ message: input.trim() }),
+      });
 
-    if (!res.ok) {
-      setIsSending(false);
+      if (!res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Sorry, I hit a snag. Try again." },
+        ]);
+        return;
+      }
+
+      const data = await res.json();
+      setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+    } catch {
+      setError("Message failed to send. Check your connection and try again.");
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Sorry, I hit a snag. Try again." },
       ]);
-      return;
+    } finally {
+      setIsSending(false);
     }
+  }
 
-    const data = await res.json();
-    setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
-    setIsSending(false);
+  async function handleClear() {
+    if (isClearing) return;
+    setIsClearing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/agent/conversation", {
+        method: "DELETE",
+        headers: {
+          ...(user?.id ? { "x-clerk-user-id": user.id } : {}),
+        },
+      });
+      if (res.ok) {
+        setMessages([]);
+      }
+    } catch {
+      setError("Unable to clear chat.");
+    } finally {
+      setIsClearing(false);
+    }
   }
 
   return (
     <div className="space-y-4">
       <Card className="flex min-h-[360px] flex-col gap-4 p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">Conversation</p>
+          <Button size="sm" variant="outline" onClick={handleClear} disabled={isClearing}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            {isClearing ? "Clearing" : "Clear"}
+          </Button>
+        </div>
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
           {messages.length === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -70,6 +142,7 @@ export function AgentChat() {
             </div>
           ) : null}
         </div>
+        {error ? <p className="text-xs text-red-500">{error}</p> : null}
         <div className="flex gap-3">
           <Input
             value={input}
@@ -90,17 +163,3 @@ export function AgentChat() {
     </div>
   );
 }
-  useEffect(() => {
-    fetch("/api/agent/conversation")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data?.messages)) {
-          const restored = data.messages.map((message: Message) => ({
-            role: message.role,
-            content: message.content,
-          }));
-          setMessages(restored);
-        }
-      })
-      .catch(() => null);
-  }, []);
