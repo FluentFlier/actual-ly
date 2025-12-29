@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabasePublic } from "@/lib/supabase/public";
 
 const USERNAME_REGEX = /^[a-z0-9_]{10,50}$/;
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabasePublic();
   const { data, error } = await supabase
     .from("users")
     .select("id")

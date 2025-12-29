@@ -38,7 +38,12 @@ export function UsernameClaim() {
     const handle = window.setTimeout(async () => {
       try {
         const res = await fetch(`/api/auth/username-available?username=${username}`);
-        const data = await res.json();
+        let data: { available?: boolean; error?: string } = {};
+        try {
+          data = await res.json();
+        } catch {
+          data = {};
+        }
         if (!res.ok) throw new Error(data?.error || "Unable to check username");
         setStatus(data.available ? "available" : "taken");
         if (!data.available) {
