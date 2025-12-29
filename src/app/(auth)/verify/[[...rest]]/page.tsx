@@ -18,6 +18,8 @@ export default function VerifyPage() {
   const [userHasUsername, setUserHasUsername] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
+  const authHeaders = user?.id ? { "x-clerk-user-id": user.id } : undefined;
+
   const phoneVerified =
     user?.primaryPhoneNumber?.verification?.status === "verified";
   const emailVerified =
@@ -32,7 +34,10 @@ export default function VerifyPage() {
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch("/api/auth/me", {
+      credentials: "include",
+      headers: authHeaders,
+    })
       .then((res) => res.json())
       .then((data) => setUserHasUsername(Boolean(data?.user?.username)))
       .catch(() => setUserHasUsername(false));
@@ -43,7 +48,10 @@ export default function VerifyPage() {
 
     fetch("/api/auth/claim-username", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(authHeaders || {}),
+      },
       credentials: "include",
       body: JSON.stringify({ username: queryUsername }),
     }).then(() => setUserHasUsername(true));
@@ -61,7 +69,10 @@ export default function VerifyPage() {
 
     const res = await fetch("/api/auth/claim-username", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(authHeaders || {}),
+      },
       credentials: "include",
       body: JSON.stringify({ username }),
     });
@@ -85,6 +96,7 @@ export default function VerifyPage() {
     const res = await fetch("/api/auth/sync-profile", {
       method: "POST",
       credentials: "include",
+      headers: authHeaders,
     });
     if (!res.ok) {
       setStatus("Unable to sync profile.");

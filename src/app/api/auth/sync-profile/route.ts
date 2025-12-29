@@ -4,7 +4,11 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { updateTrustScore } from "@/lib/data/users";
 
 export async function POST() {
-  const { userId } = auth();
+  let { userId } = auth();
+  if (!userId && process.env.DEV_BYPASS_AUTH === "true") {
+    const headerId = request.headers.get("x-clerk-user-id");
+    if (headerId) userId = headerId;
+  }
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
