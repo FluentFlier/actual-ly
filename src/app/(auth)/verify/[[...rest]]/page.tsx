@@ -184,13 +184,13 @@ export default function VerifyPage() {
             below to verify both.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/40 px-4 py-3 text-sm">
               <span>Email verified</span>
               <span className={emailVerified ? "text-emerald-500" : "text-amber-500"}>
                 {emailVerified ? "Verified" : "Pending"}
               </span>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/40 px-4 py-3 text-sm">
               <span>Phone verified</span>
               <span className={phoneVerified ? "text-emerald-500" : "text-amber-500"}>
                 {phoneVerified ? "Verified" : "Pending"}
@@ -219,9 +219,11 @@ export default function VerifyPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-dashed border-border px-4 py-3 text-xs text-muted-foreground">
-        Need Google Calendar or Gmail? Open “Connected accounts” in the panel above to link Google.
-      </div>
+      <Card>
+        <CardContent className="text-xs text-muted-foreground">
+          Need Google Calendar or Gmail? Open “Connected accounts” in the panel above to link Google.
+        </CardContent>
+      </Card>
 
       {searchParams.get("mode") === "integrations" ? (
         <Card>
