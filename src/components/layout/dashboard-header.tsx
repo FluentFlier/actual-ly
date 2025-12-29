@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { UserButton } from "@clerk/nextjs";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function DashboardHeader({
             className="h-10 w-56 rounded-full border border-border bg-card pl-9 pr-4 text-sm"
           />
         </div>
+        <ThemeToggle />
         {actions}
         <UserButton afterSignOutUrl="/" />
       </div>
