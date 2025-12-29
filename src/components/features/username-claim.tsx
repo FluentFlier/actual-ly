@@ -89,7 +89,7 @@ export function UsernameClaim() {
             onChange={(event) => setUsername(event.target.value.trim().toLowerCase())}
             placeholder="claim your username"
             className={cn(
-              "border-[#d9cbbd] bg-white text-[#1f1a17] placeholder:text-[#9a8f88]",
+              "h-12 rounded-full border border-[#d9cbbd] bg-white px-5 text-[#1f1a17] shadow-sm placeholder:text-[#9a8f88] focus-visible:ring-[#b1251b]",
               status === "available" && "border-emerald-500",
               status === "taken" && "border-rose-500",
             )}
@@ -101,7 +101,7 @@ export function UsernameClaim() {
         <Button
           onClick={handleSubmit}
           size="lg"
-          className="w-full bg-[#b1251b] text-white hover:bg-[#8f1d14] sm:w-auto"
+          className="h-12 w-full rounded-full bg-[#b1251b] text-white shadow-sm hover:bg-[#8f1d14] sm:w-auto"
         >
           Get started
         </Button>
