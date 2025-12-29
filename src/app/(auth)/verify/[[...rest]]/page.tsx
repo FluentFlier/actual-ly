@@ -134,42 +134,46 @@ export default function VerifyPage() {
         </Card>
       ) : null}
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Verify your identity</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Actual.ly requires a verified phone number and email. Use the Clerk profile
-            panel below to verify both.
+            Actual.ly requires a verified phone number and email. Use the Clerk panel
+            below to verify both.
           </p>
-          <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
-            <span>Email verified</span>
-            <span className={emailVerified ? "text-emerald-500" : "text-amber-500"}>
-              {emailVerified ? "Verified" : "Pending"}
-            </span>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
+              <span>Email verified</span>
+              <span className={emailVerified ? "text-emerald-500" : "text-amber-500"}>
+                {emailVerified ? "Verified" : "Pending"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
+              <span>Phone verified</span>
+              <span className={phoneVerified ? "text-emerald-500" : "text-amber-500"}>
+                {phoneVerified ? "Verified" : "Pending"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
-            <span>Phone verified</span>
-            <span className={phoneVerified ? "text-emerald-500" : "text-amber-500"}>
-              {phoneVerified ? "Verified" : "Pending"}
-            </span>
-          </div>
-          <div className="rounded-xl border border-border bg-background/60 p-2">
-            <UserProfile
-              routing="hash"
-              appearance={{
-                elements: {
-                  rootBox: "w-full",
-                  cardBox: "w-full",
-                  card: "shadow-none border-transparent bg-transparent p-0",
-                  navbar: "hidden",
-                  pageScrollBox: "max-h-[320px] overflow-y-auto",
-                  headerTitle: "text-base",
-                  headerSubtitle: "text-xs",
-                },
-              }}
-            />
+          <div className="flex justify-center">
+            <div className="w-full max-w-3xl rounded-2xl border border-border bg-background/80 p-4 shadow-sm">
+              <UserProfile
+                routing="hash"
+                appearance={{
+                  elements: {
+                    rootBox: "w-full",
+                    cardBox: "w-full",
+                    card: "shadow-none border-transparent bg-transparent p-0",
+                    navbar: "hidden",
+                    pageScrollBox: "max-h-[420px] overflow-y-auto",
+                    headerTitle: "text-base",
+                    headerSubtitle: "text-xs",
+                  },
+                }}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
