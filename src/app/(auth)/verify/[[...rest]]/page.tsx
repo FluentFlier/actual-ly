@@ -78,7 +78,12 @@ export default function VerifyPage() {
     });
 
     if (!res.ok) {
-      const data = await res.json();
+      let data: { error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
       setStatus(data?.error || "Unable to claim username.");
       return;
     }
