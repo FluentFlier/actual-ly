@@ -128,7 +128,7 @@ export default function CollectionsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={collection.is_default}
+                    disabled={collection.is_default ?? false}
                     onClick={() => handleDelete(collection)}
                   >
                     Delete
